@@ -1,4 +1,5 @@
 'use client'
+
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 
@@ -10,44 +11,52 @@ interface FormValues {
   title: string;
 }
 
-const Form: React.FC = () => {
-  const validationSchema = Yup.object().shape({
+interface FormProps {
+  handleModal: () => void;
+}
+
+const Form: React.FC<FormProps> = ({ handleModal }) => {
+  const validationSchema = Yup.object({
     name: Yup.string()
-      .min(2, 'Name must be minimum 2')
+      .min(2, 'Name must be minimum 2 characters')
       .max(100, 'Name must not be more than 100 characters')
       .required('Name is required'),
-    email: Yup.string().email('Invalid email').required('Email is required'),
+    email: Yup.string()
+      .email('Invalid email')
+      .required('Email is required'),
     phone: Yup.string()
       .matches(/^\d{10}$/, 'Phone number must be exactly 10 digits')
       .required('Phone is required'),
     company: Yup.string()
-      .min(2, 'company must be minimum 2')
-      .max(100, 'company must not be more than 100 characters')
-      .required('company is required'),
+      .min(2, 'Company must be minimum 2 characters')
+      .max(100, 'Company must not be more than 100 characters')
+      .required('Company is required'),
     title: Yup.string()
-      .min(2, 'title must be minimum 2')
-      .max(100, 'title must not be more than 100 characters')
-      .required('title is required'),
+      .min(2, 'Title must be minimum 2 characters')
+      .max(100, 'Title must not be more than 100 characters')
+      .required('Title is required'),
   });
 
   const handleSubmit = async (values: FormValues) => {
     try {
-      const allDetails = await fetch('/api/card', {
+      const response = await fetch('/api/card', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(values),
       });
-      if (!allDetails.ok) {
+      if (!response.ok) {
         throw new Error('Failed to insert the data');
       }
-      alert('Created a Contact Successfully!');
+      alert('Created a Contact Successfully!');      
+      // formik.resetForm();
     } catch (error) {
       console.error(error);
       alert('An error occurred while creating the contact.');
     }
+    console.log(JSON.stringify(values));
   };
 
-  const formik = useFormik({
+  const formik = useFormik<FormValues>({
     initialValues: {
       name: '',
       email: '',
@@ -62,9 +71,9 @@ const Form: React.FC = () => {
   return (
     <div className='bg-white text-[#202020] max-w-[808px] p-16 text-md rounded-3xl shadow-lg shadow-[#080F340F]'>
       <h1 className='font-bold text-center text-3xl mb-2'>Add New Contact</h1>
-      <p className='text-[#6F6C90] text-center'>Fill out the below form to add new member</p>
+      <p className='text-[#6F6C90] text-center'>Fill out the form below to add a new member</p>
       <form className='mt-8' onSubmit={formik.handleSubmit}>
-        {/* name field  */}
+        {/* Name field */}
         <div className='flex flex-col gap-3 pb-4'>
           <label htmlFor="name">Name</label>
           <div className="pb-3">
@@ -74,6 +83,7 @@ const Form: React.FC = () => {
               name="name"
               value={formik.values.name}
               onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
               placeholder='Angela Moss'
               className='px-4 py-3 w-full border shadow-sm shadow-[#13124212] border-[#EFF0F6] rounded-3xl focus:outline-none'
             />
@@ -82,7 +92,7 @@ const Form: React.FC = () => {
             )}
           </div>
         </div>
-        {/* email field  */}
+        {/* Email & Phone fields */}
         <div className='grid grid-cols-2 gap-8'>
           <div className="flex flex-col gap-3 pb-4">
             <label htmlFor="email">Email</label>
@@ -93,6 +103,7 @@ const Form: React.FC = () => {
                 name="email"
                 value={formik.values.email}
                 onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
                 placeholder='Email address'
                 className='px-4 py-3 w-full border shadow-sm shadow-[#13124212] border-[#EFF0F6] rounded-3xl focus:outline-none'
               />
@@ -101,8 +112,6 @@ const Form: React.FC = () => {
               )}
             </div>
           </div>
-
-          {/* for phone field */}
           <div className="flex flex-col gap-3 pb-4">
             <label htmlFor="phone">Phone</label>
             <div className="pb-3">
@@ -112,6 +121,7 @@ const Form: React.FC = () => {
                 name="phone"
                 value={formik.values.phone}
                 onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
                 placeholder='(123) 456 - 7890'
                 className='px-4 py-3 w-full border shadow-sm shadow-[#13124212] border-[#EFF0F6] rounded-3xl focus:outline-none'
               />
@@ -121,8 +131,7 @@ const Form: React.FC = () => {
             </div>
           </div>
         </div>
-
-        {/* company field  */}
+        {/* Company & Title fields */}
         <div className='grid grid-cols-2 gap-8'>
           <div className="flex flex-col gap-3 pb-4">
             <label htmlFor="company">Company</label>
@@ -133,6 +142,7 @@ const Form: React.FC = () => {
                 name="company"
                 value={formik.values.company}
                 onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
                 placeholder='Company name'
                 className='px-4 py-3 w-full border shadow-sm shadow-[#13124212] border-[#EFF0F6] rounded-3xl focus:outline-none'
               />
@@ -141,16 +151,16 @@ const Form: React.FC = () => {
               )}
             </div>
           </div>
-          {/* title field  */}
           <div className="flex flex-col gap-3 pb-4">
-            <label className='font-bold ' htmlFor="title">Title</label>
-            <div className='pb-3'>
+            <label htmlFor="title" className='font-bold'>Title</label>
+            <div className="pb-3">
               <input
                 type="text"
                 id="title"
                 name="title"
                 value={formik.values.title}
                 onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
                 placeholder='Marketing Manager'
                 className='px-4 py-3 w-full border shadow-sm shadow-[#13124212] border-[#EFF0F6] rounded-3xl focus:outline-none'
               />
@@ -171,12 +181,11 @@ const Form: React.FC = () => {
           <button
             type="button"
             className="p-5 text-[#6418C3] font-bold rounded-xl min-w-[130px] border border-[#6418C3]"
+            onClick={handleModal}
           >
             Cancel
           </button>
-
         </div>
-
       </form>
     </div>
   );
