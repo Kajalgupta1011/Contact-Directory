@@ -36,6 +36,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body: Card = await request.json();
+    // const { name, email, phone, company, title } = await request.json() as Card;
     const card = await prisma.card.create({ data: body });
     return NextResponse.json(card);
   } catch (error) {
